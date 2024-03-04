@@ -12,9 +12,9 @@ def _get_prob(problem, backend, **kwargs):
 
 
 class DummyProblem(SingleObjectiveProblem):
-    bounds = [(0, 1), (0, 1)]
-    _optimal_value = 0
-    _optimizers = [(0, 0)]
+    bounds = [(0.0, 1.0), (0.0, 1.0)]
+    _optimal_value = 0.0
+    _optimizers = [(0.0, 0.0)]
 
     def _evaluate(self, x: Union[torch.Tensor, np.ndarray]) -> Union[torch.Tensor, np.ndarray]:
         back, kwargs = self._get_backend()

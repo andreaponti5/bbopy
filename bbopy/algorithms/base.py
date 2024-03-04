@@ -62,6 +62,12 @@ class Algorithm(ABC):
         r"""A torch tensor or a numpy ndarray with the objective evaluations."""
         pass
 
+    @property
+    @abstractmethod
+    def n_eval(self):
+        r"""The number of function evaluations so far."""
+        pass
+
     def best_seen(self, maximize: bool = False) -> float:
         r"""Gets the best seen over the evaluations (minimum if maximize is False, maximum otherwise).
 

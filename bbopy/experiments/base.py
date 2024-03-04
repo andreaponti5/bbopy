@@ -23,7 +23,7 @@ class Experiment:
     Examples:
         Optimize the Ackley 3-dim function with a Genetic Algorithm (based on Pymoo):
 
-        >>> from bbopy.algorithms.pymoo import GeneticAlgorithm
+        >>> from bbopy.algorithms.pymoo_algorithms import GeneticAlgorithm
         >>> from bbopy.experiments import Experiment
         >>> from bbopy.problems.sobj import Ackley
         >>>
@@ -37,7 +37,7 @@ class Experiment:
         >>> from botorch.acquisition import UpperConfidenceBound
         >>> from botorch.models import SingleTaskGP
         >>> from botorch.models.transforms import Normalize
-        >>> from bbopy.algorithms.botorch import BayesianOptimization
+        >>> from bbopy.algorithms.botorch_algorithms import BayesianOptimization
         >>>
         >>> prob = Ackley(dim=3, backend="torch")
         >>> algo = BayesianOptimization(n_init=10,

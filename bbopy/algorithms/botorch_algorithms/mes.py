@@ -8,7 +8,7 @@ from botorch.models import SingleTaskGP
 from botorch.models.transforms import Normalize, Standardize
 from botorch.optim import optimize_acqf
 
-from bbopy.algorithms.botorch import BayesianOptimization
+from bbopy.algorithms.botorch_algorithms import BayesianOptimization
 from bbopy.sampling import Sampling, FloatRandomSampling
 
 

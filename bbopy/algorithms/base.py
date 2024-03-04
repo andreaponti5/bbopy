@@ -62,6 +62,12 @@ class Algorithm(ABC):
         r"""A torch tensor or a numpy ndarray with the objective evaluations."""
         pass
 
+    @property
+    @abstractmethod
+    def n_eval(self):
+        r"""The number of function evaluations so far."""
+        pass
+
     def best_seen(self, maximize: bool = False) -> float:
         r"""Gets the best seen over the evaluations (minimum if maximize is False, maximum otherwise).
 
@@ -83,8 +89,13 @@ class PymooAlgorithm(Algorithm, ABC):
         name (str): The name of the algorithm.
     """
 
-    def __init__(self):
-        r"""Initializes attributes."""
+    def __init__(self, pop_size: int):
+        r"""Initializes attributes.
+
+        Args:
+            pop_size (int): The number of individuals in the population.
+        """
+        self.pop_size = pop_size
         self._settings = None
         self._algo = None
         self._curr_pop = None

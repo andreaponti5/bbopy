@@ -44,7 +44,7 @@ class GeneticAlgorithm(PymooAlgorithm):
             n_offsprings (int): The number of new offsprings to be generated at each generation.
                 If None `n_offsprings`=`pop_size`.
         """
-        super().__init__()
+        super().__init__(pop_size)
         self._algo = GA(pop_size=pop_size,
                         sampling=sampling,
                         selection=selection,
@@ -84,7 +84,7 @@ class DifferentialEvolution(PymooAlgorithm):
             jitter (bool): Whether to apply jitter.
             **kwargs (dict): Additional arguments.
         """
-        super().__init__()
+        super().__init__(pop_size)
         self._algo = DE(pop_size=pop_size,
                         sampling=sampling,
                         variant=variant,
@@ -112,7 +112,7 @@ class CMAES(PymooAlgorithm):
             sampling (Sampling): The strategy to sample initial points (Be sure to use the pymoo backend).
             kwargs (dict): Additional arguments passed to the Pymoo CMAES constructor.
         """
-        super().__init__()
+        super().__init__(1)
         self._algo_kwargs = kwargs
         self._sampling = sampling
 
@@ -144,7 +144,7 @@ class EvolutionaryStrategy(PymooAlgorithm):
             pop_size: int = None,
             sampling: Sampling = FloatRandomSampling(backend="pymoo"),
             survival: Survival = FitnessSurvival(),
-            n_offsprings: int = 200,
+            n_offsprings: int = None,
             rule: float = 1.0 / 7.0,
             phi: float = 1.0,
             gamma: float = 0.85
@@ -163,7 +163,11 @@ class EvolutionaryStrategy(PymooAlgorithm):
             gamma (float): If not `None`, some individuals are created using the differentials
                 with this as a length scale.
         """
-        super().__init__()
+        super().__init__(pop_size)
+        if pop_size is None and n_offsprings is None:
+            raise ValueError("One of pop_size or n_offsprings must be specified.")
+        if n_offsprings is None:
+            n_offsprings = 2 * pop_size
         self._algo = ES(
             n_offsprings=n_offsprings,
             pop_size=pop_size,

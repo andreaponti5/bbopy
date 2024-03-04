@@ -12,6 +12,9 @@ def _get_prob(problem, backend, **kwargs):
 
 
 class DummyProblem(SingleObjectiveProblem):
+    dim = 2
+    n_obj = 1
+    n_constr = 0
     bounds = [(0.0, 1.0), (0.0, 1.0)]
     _optimal_value = 0.0
     _optimizers = [(0.0, 0.0)]

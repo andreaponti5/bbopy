@@ -2,7 +2,7 @@ from botorch.acquisition import UpperConfidenceBound
 from botorch.models import SingleTaskGP
 from botorch.optim import optimize_acqf
 
-from bbopy.algorithms.botorch import BayesianOptimization
+from bbopy.algorithms.botorch_algorithms import BayesianOptimization
 from test.algorithms.test_algorithm import TestBoTorchAlgorithm
 
 

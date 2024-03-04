@@ -4,7 +4,7 @@ from botorch.models import SingleTaskGP
 from botorch.models.transforms import Normalize, Standardize
 from botorch.optim import optimize_acqf
 
-from bbopy.algorithms.botorch import MES
+from bbopy.algorithms.botorch_algorithms import MES
 from test.algorithms.test_algorithm import TestBoTorchAlgorithm
 
 

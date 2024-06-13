@@ -1,0 +1,86 @@
+site_name: BBOPy
+site_author: Andrea Ponti
+site_description: BBOPy is a Python library to simplify experimentations with black-box optimization algorithms.
+nav:
+  - Home: index.md
+  - User Guide:
+    - Installation: user_guide/installation.md
+    - Define Problems: user_guide/define_problems.md
+    - Run Experiments: user_guide/run_experiments.md
+  - API:
+      - Algorithms:
+          - Base: api/algorithms/base.md
+          - BoTorch: api/algorithms/botorch.md
+          - Pymoo: api/algorithms/pymoo.md
+      - Experiments: api/experiment.md
+      - Problems:
+          - Base: api/problems/base.md
+          - Single-Objective: api/problems/single_objective.md
+          - Multi-Objective: api/problems/multi_objective.md
+      - Sampling Strategies: api/sampling.md
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            heading_level: 2
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            docstring_section_style: list
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: false
+
+markdown_extensions:
+  - meta
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.pathconverter
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

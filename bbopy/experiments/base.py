@@ -37,10 +37,10 @@ class Experiment:
         >>> from botorch.acquisition import UpperConfidenceBound
         >>> from botorch.models import SingleTaskGP
         >>> from botorch.models.transforms import Normalize
-        >>> from bbopy.algorithms.botorch_algorithms import BayesianOptimization
+        >>> from bbopy.algorithms.botorch_algorithms import BO
         >>>
         >>> prob = Ackley(dim=3, backend="torch")
-        >>> algo = BayesianOptimization(n_init=10,
+        >>> algo = BO(n_init=10,
         ...                             surrogate=SingleTaskGP,
         ...                             surrogate_kwargs={"input_transform": Normalize(prob.dim)},
         ...                             acquisition=UpperConfidenceBound,

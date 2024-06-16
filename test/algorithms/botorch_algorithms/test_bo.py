@@ -2,12 +2,12 @@ from botorch.acquisition import UpperConfidenceBound
 from botorch.models import SingleTaskGP
 from botorch.optim import optimize_acqf
 
-from bbopy.algorithms.botorch_algorithms import BayesianOptimization
+from bbopy.algorithms.botorch_algorithms import BO
 from test.algorithms.test_algorithm import TestBoTorchAlgorithm
 
 
 class TestBayesianOptimization(TestBoTorchAlgorithm):
-    algorithm_class = BayesianOptimization
+    algorithm_class = BO
     algorithm_kwargs = {"n_init": 5}
 
     def test_default_init(self):

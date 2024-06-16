@@ -12,7 +12,7 @@ from bbopy.algorithms.base import BoTorchAlgorithm
 from bbopy.sampling import Sampling, FloatRandomSampling
 
 
-class BayesianOptimization(BoTorchAlgorithm):
+class BO(BoTorchAlgorithm):
     """A generic Bayesian Optimization algorithm.
 
     It is characterized mainly by a surrogate model and an acquisition function.
@@ -28,7 +28,7 @@ class BayesianOptimization(BoTorchAlgorithm):
         acquisition (AcquisitionFunction): The acquisition function used to generate candidate points.
             It can be any BoTorch acquisition function. If not specified, the default is `UpperConfidenceBound`.
     """
-    name: str = "Bayesian Optimization"
+    name: str = "BO"
 
     def __init__(
             self,

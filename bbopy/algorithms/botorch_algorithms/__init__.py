@@ -1,4 +1,3 @@
-from .baxus import BAxUS
-from .bayesian_optimization import BayesianOptimization
-from .mes import MES
-from .turbo import TURBO
+from .vanilla import BO
+from .entropy_search import MES, GIBBON
+from .trust_region import BAxUS, TURBO

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional, Any
 
 import numpy as np
 import torch
@@ -17,7 +17,7 @@ class Sampling(ABC):
             It can specify "device" and "dtype" of the torch tensor. Ignored with other backends.
     """
 
-    def __init__(self, backend: str, seed: int = None, **tkwargs: dict):
+    def __init__(self, backend: str, seed: int = None, **tkwargs: Any):
         r""" Initializes the sampling strategy configuration.
 
         Args:

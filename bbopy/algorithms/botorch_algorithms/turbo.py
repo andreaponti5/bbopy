@@ -29,27 +29,25 @@ class TURBO(BoTorchAlgorithm):
             n_init: int,
             acquisition: Union[Type[qExpectedImprovement], Type[MaxPosteriorSampling]],
             acquisition_optimizer_kwargs: Optional[Dict[str, Any]] = None,
-            batch_size: Optional[int] = 1,
             sampling: Sampling = FloatRandomSampling(backend="torch", dtype=torch.double)
     ) -> None:
         super().__init__(n_init)
         self._dim = None
         self.state = None
         self.n_candidates = None
+        self.batch_size = None
         self._sampling = sampling
         self._surrogate = SingleTaskGP
         self._acquisition = acquisition
-        self._acquisition_optimizer_kwargs = acquisition_optimizer_kwargs
-        if acquisition_optimizer_kwargs is None:
-            _, self._acquisition_optimizer_kwargs = self._default_acqf_optimizer()
-        self._acquisition_optimizer_kwargs.pop("q", None)
-        self.batch_size = batch_size
+        self._acqf_optimizer_kwargs = acquisition_optimizer_kwargs
 
     def setup(
             self,
             problem: Problem,
     ) -> None:
         self._dim = problem.dim
+        self._acqf_optimizer_kwargs = self._acqf_optimizer_kwargs or {"q": 1, "num_restarts": 10, "raw_samples": 50}
+        self.batch_size = self._acqf_optimizer_kwargs["q"]
         self.n_candidates = min(5000, max(2000, 200 * problem.dim))
         self.state = TurboState(dim=problem.dim, batch_size=self.batch_size)
         self.bounds = problem.bounds
@@ -61,7 +59,7 @@ class TURBO(BoTorchAlgorithm):
             self._train_x = self._sampling(self.bounds, self.n_init)
             return self._train_x
         with gpytorch.settings.max_cholesky_size(float("inf")):
-            candidates = self._generate_batch()
+            candidates = self._generate_candidate()
         new_x = candidates.detach()
         new_x = unnormalize(new_x, self._bounds)
         self._train_x = torch.cat([self._train_x, new_x])
@@ -91,7 +89,7 @@ class TURBO(BoTorchAlgorithm):
         with gpytorch.settings.max_cholesky_size(float("inf")):
             fit_gpytorch_mll(mll)
 
-    def _generate_batch(self):
+    def _generate_candidate(self):
         assert torch.all(torch.isfinite(self.train_y))
         train_X = normalize(self.train_x, self._bounds)
         # Scale the TR to be proportional to the lengthscales
@@ -102,12 +100,12 @@ class TURBO(BoTorchAlgorithm):
         tr_lb = torch.clamp(x_center - weights * self.state.length / 2.0, 0.0, 1.0)
         tr_ub = torch.clamp(x_center + weights * self.state.length / 2.0, 0.0, 1.0)
         if self._acquisition == MaxPosteriorSampling:
-            return self._generate_batch_ts(train_X, tr_lb, tr_ub, x_center)
+            return self._generate_candidate_ts(train_X, tr_lb, tr_ub, x_center)
         if self._acquisition == qExpectedImprovement:
-            return self._generate_batch_qei(tr_lb, tr_ub)
+            return self._generate_candidate_qei(tr_lb, tr_ub)
         raise NotImplementedError()
 
-    def _generate_batch_ts(self, train_X, tr_lb, tr_ub, x_center):
+    def _generate_candidate_ts(self, train_X, tr_lb, tr_ub, x_center):
         dtype = train_X.dtype
         device = train_X.device
 
@@ -127,18 +125,17 @@ class TURBO(BoTorchAlgorithm):
         X_cand[mask] = pert[mask]
 
         # Sample on the candidate points
-        thompson_sampling = MaxPosteriorSampling(model=self.model, replacement=False)
+        thompson_sampling = self._acquisition(model=self.model, replacement=False)
         with torch.no_grad():  # We don't need gradients when using TS
             candidate = thompson_sampling(X_cand, num_samples=self.batch_size)
         return candidate
 
-    def _generate_batch_qei(self, tr_lb, tr_ub):
-        ei = qExpectedImprovement(self.model, self.train_y.max())
+    def _generate_candidate_qei(self, tr_lb, tr_ub):
+        ei = self._acquisition(self.model, self.train_y.max())
         candidate, _ = optimize_acqf(
             ei,
             bounds=torch.stack([tr_lb, tr_ub]),
-            q=self.batch_size,
-            **self._acquisition_optimizer_kwargs
+            **self._acqf_optimizer_kwargs
         )
         return candidate
 
@@ -160,6 +157,7 @@ class TURBO(BoTorchAlgorithm):
         self.state.best_value = max(self.state.best_value, max(Y_next).item())
         if self.state.length < self.state.length_min:
             self.state.restart_triggered = True
+        return self.state
 
 
 @dataclass

@@ -8,11 +8,11 @@ from botorch.models import SingleTaskGP
 from botorch.models.transforms import Normalize, Standardize
 from botorch.optim import optimize_acqf
 
-from bbopy.algorithms.botorch_algorithms import BayesianOptimization
+from bbopy.algorithms.botorch_algorithms import BO
 from bbopy.sampling import Sampling, FloatRandomSampling
 
 
-class MES(BayesianOptimization):
+class MES(BO):
     r"""A Bayesian Optimization algorithm using the Max-value Entropy Search (MES) acquisition function."""
     name: str = "Max-value Entropy Search"
 

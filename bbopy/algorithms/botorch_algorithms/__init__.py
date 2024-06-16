@@ -1,4 +1,6 @@
-from .baxus import BAxUS
-from .bayesian_optimization import BayesianOptimization
-from .mes import MES
+# TURBO has to be imported before BAxUS to avoid circular imports
 from .turbo import TURBO
+from .baxus import BAxUS
+
+from .bo import BO
+from .mes import MES

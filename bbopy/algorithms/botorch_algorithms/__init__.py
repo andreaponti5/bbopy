@@ -1,6 +1,3 @@
-# TURBO has to be imported before BAxUS to avoid circular imports
-from .turbo import TURBO
-from .baxus import BAxUS
-
-from .bo import BO
-from .mes import MES
+from .vanilla import BO
+from .entropy_search import MES, GIBBON
+from .trust_region import BAxUS, TURBO

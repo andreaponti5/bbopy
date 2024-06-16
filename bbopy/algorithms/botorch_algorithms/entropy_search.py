@@ -1,8 +1,8 @@
 import warnings
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, Type
 
 import torch
-from botorch.acquisition import qMaxValueEntropy
+from botorch.acquisition import qMaxValueEntropy, AcquisitionFunction, qLowerBoundMaxValueEntropy
 from botorch.exceptions import BotorchTensorDimensionWarning
 from botorch.models import SingleTaskGP
 from botorch.models.transforms import Normalize, Standardize
@@ -14,10 +14,12 @@ from bbopy.sampling import Sampling, FloatRandomSampling
 
 class MES(BO):
     r"""A Bayesian Optimization algorithm using the Max-value Entropy Search (MES) acquisition function."""
-    name: str = "Max-value Entropy Search"
+    name: str = "MES"
 
     def __init__(
-            self, n_init,
+            self,
+            n_init: int,
+            acquisition: Optional[Type[AcquisitionFunction]] = qMaxValueEntropy,
             acquisition_optimizer: Optional[Callable] = None,
             surrogate_kwargs: Optional[Dict[str, Any]] = None,
             acquisition_kwargs: Optional[Dict[str, Any]] = None,
@@ -28,7 +30,7 @@ class MES(BO):
         super().__init__(
             n_init,
             surrogate=SingleTaskGP,
-            acquisition=qMaxValueEntropy,
+            acquisition=acquisition,
             acquisition_optimizer=acquisition_optimizer,
             surrogate_kwargs=surrogate_kwargs,
             acquisition_kwargs=acquisition_kwargs,
@@ -49,3 +51,29 @@ class MES(BO):
                                                                                          bounds=self._bounds),
                                                             "outcome_transform": Standardize(1)}
         self._bounds = self._bounds.to(**self._sampling.tkwargs)
+
+
+class GIBBON(MES):
+    r"""A Bayesian Optimization algorithm using the GIBBON acquisition function."""
+    name: str = "GIBBON"
+
+    def __init__(
+            self,
+            n_init: int,
+            acquisition: Optional[Type[AcquisitionFunction]] = qLowerBoundMaxValueEntropy,
+            acquisition_optimizer: Optional[Callable] = None,
+            surrogate_kwargs: Optional[Dict[str, Any]] = None,
+            acquisition_kwargs: Optional[Dict[str, Any]] = None,
+            acquisition_optimizer_kwargs: Optional[Dict[str, Any]] = None,
+            sampling: Sampling = FloatRandomSampling(backend="torch", dtype=torch.double)
+    ):
+        warnings.simplefilter("ignore", BotorchTensorDimensionWarning)
+        super().__init__(
+            n_init,
+            acquisition=acquisition,
+            acquisition_optimizer=acquisition_optimizer,
+            surrogate_kwargs=surrogate_kwargs,
+            acquisition_kwargs=acquisition_kwargs,
+            acquisition_optimizer_kwargs=acquisition_optimizer_kwargs,
+            sampling=sampling
+        )

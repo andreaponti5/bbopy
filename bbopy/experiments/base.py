@@ -109,7 +109,7 @@ class Experiment:
         elif isinstance(self.algorithm, PymooAlgorithm):
             column_names = ["Gen.", "N. Eval.", "Best Seen", "Time"]
         else:
-            raise NotImplementedError()
+            column_names = ["#", "N. Eval.", "Best Seen", "Time"]
         return Table(column_names, width, title=self.algorithm.name)
 
     def _update_display(self, index: int, exec_time: float) -> None:

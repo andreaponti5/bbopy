@@ -1,9 +1,10 @@
-from typing import Callable, Type, Dict, Any, Optional
+from typing import Callable, Type, Dict, Any, Optional, Union
 
 import torch
 from botorch import fit_gpytorch_mll
 from botorch.acquisition import AcquisitionFunction, UpperConfidenceBound
 from botorch.models import SingleTaskGP
+from botorch.models.model import Model
 from botorch.optim import optimize_acqf
 from gpytorch import ExactMarginalLogLikelihood
 from gpytorch.models import ExactGP
@@ -33,8 +34,8 @@ class BO(BoTorchAlgorithm):
     def __init__(
             self,
             n_init: int,
-            surrogate: Optional[Type[ExactGP]] = None,
-            acquisition: Optional[Type[AcquisitionFunction]] = None,
+            surrogate: Optional[Type[Model]] = None,
+            acquisition: Optional[Type[Union[AcquisitionFunction, Callable]]] = None,
             acquisition_optimizer: Optional[Callable] = None,
             surrogate_kwargs: Optional[Dict[str, Any]] = None,
             acquisition_kwargs: Optional[Dict[str, Any]] = None,

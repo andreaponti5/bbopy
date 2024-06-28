@@ -1,10 +1,11 @@
 import warnings
-from typing import Optional, Dict, Any, Callable, Type
+from typing import Optional, Dict, Any, Callable
 
 import torch
-from botorch.acquisition import qMaxValueEntropy, AcquisitionFunction, qLowerBoundMaxValueEntropy
+from botorch.acquisition import qMaxValueEntropy, qLowerBoundMaxValueEntropy, \
+    qMultiFidelityMaxValueEntropy, qMultiFidelityLowerBoundMaxValueEntropy
 from botorch.exceptions import BotorchTensorDimensionWarning
-from botorch.models import SingleTaskGP
+from botorch.models import SingleTaskGP, SingleTaskMultiFidelityGP
 from botorch.models.transforms import Normalize, Standardize
 from botorch.optim import optimize_acqf
 
@@ -19,7 +20,6 @@ class MES(BO):
     def __init__(
             self,
             n_init: int,
-            acquisition: Optional[Type[AcquisitionFunction]] = qMaxValueEntropy,
             acquisition_optimizer: Optional[Callable] = None,
             surrogate_kwargs: Optional[Dict[str, Any]] = None,
             acquisition_kwargs: Optional[Dict[str, Any]] = None,
@@ -30,7 +30,7 @@ class MES(BO):
         super().__init__(
             n_init,
             surrogate=SingleTaskGP,
-            acquisition=acquisition,
+            acquisition=qMaxValueEntropy,
             acquisition_optimizer=acquisition_optimizer,
             surrogate_kwargs=surrogate_kwargs,
             acquisition_kwargs=acquisition_kwargs,
@@ -60,7 +60,6 @@ class GIBBON(MES):
     def __init__(
             self,
             n_init: int,
-            acquisition: Optional[Type[AcquisitionFunction]] = qLowerBoundMaxValueEntropy,
             acquisition_optimizer: Optional[Callable] = None,
             surrogate_kwargs: Optional[Dict[str, Any]] = None,
             acquisition_kwargs: Optional[Dict[str, Any]] = None,
@@ -70,10 +69,68 @@ class GIBBON(MES):
         warnings.simplefilter("ignore", BotorchTensorDimensionWarning)
         super().__init__(
             n_init,
-            acquisition=acquisition,
             acquisition_optimizer=acquisition_optimizer,
             surrogate_kwargs=surrogate_kwargs,
             acquisition_kwargs=acquisition_kwargs,
             acquisition_optimizer_kwargs=acquisition_optimizer_kwargs,
             sampling=sampling
         )
+        self._acqf = qLowerBoundMaxValueEntropy
+
+
+class MFMES(MES):
+    r"""A Multi-Fidelity Bayesian Optimization algorithm using the Max-value Entropy Search (MES)
+    acquisition function."""
+    name: str = "MF-MES"
+
+    def __init__(
+            self,
+            n_init: int,
+            acquisition_optimizer: Optional[Callable] = None,
+            surrogate_kwargs: Optional[Dict[str, Any]] = None,
+            acquisition_kwargs: Optional[Dict[str, Any]] = None,
+            acquisition_optimizer_kwargs: Optional[Dict[str, Any]] = None,
+            sampling: Sampling = FloatRandomSampling(backend="torch", dtype=torch.double)
+    ):
+        super().__init__(n_init,
+                         acquisition_optimizer,
+                         surrogate_kwargs,
+                         acquisition_kwargs,
+                         acquisition_optimizer_kwargs,
+                         sampling)
+        self._surrogate = SingleTaskMultiFidelityGP
+        self._acqf = qMultiFidelityMaxValueEntropy
+
+    def _setup(self) -> None:
+        super()._setup()
+        if "data_fidelities" not in self._surrogate_kwargs:
+            self._surrogate_kwargs["data_fidelities"] = [-1]
+        self.data_fidelities = self._surrogate_kwargs["data_fidelities"]
+
+    def best_seen(self, maximize: bool = False) -> float:
+        max_fidelity = self.train_x[..., self.data_fidelities].max()
+        fid_indeces = torch.where(self.train_x[..., self.data_fidelities] == max_fidelity)
+        fid_objectives = self.train_y[fid_indeces]
+        return fid_objectives.max() if maximize else fid_objectives.min()
+
+
+class MFGIBBON(MFMES):
+    r"""A Multi-Fidelity Bayesian Optimization algorithm using the GIBBON acquisition function."""
+    name: str = "MF-GIBBON"
+
+    def __init__(
+            self,
+            n_init: int,
+            acquisition_optimizer: Optional[Callable] = None,
+            surrogate_kwargs: Optional[Dict[str, Any]] = None,
+            acquisition_kwargs: Optional[Dict[str, Any]] = None,
+            acquisition_optimizer_kwargs: Optional[Dict[str, Any]] = None,
+            sampling: Sampling = FloatRandomSampling(backend="torch", dtype=torch.double)
+    ):
+        super().__init__(n_init,
+                         acquisition_optimizer,
+                         surrogate_kwargs,
+                         acquisition_kwargs,
+                         acquisition_optimizer_kwargs,
+                         sampling)
+        self._acqf = qMultiFidelityLowerBoundMaxValueEntropy

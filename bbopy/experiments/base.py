@@ -2,10 +2,11 @@ import time
 
 import pandas as pd
 
-from bbopy.algorithms import BoTorchAlgorithm, PymooAlgorithm, Algorithm
+from bbopy.algorithms import Algorithm
 from bbopy.problems import Problem
 from bbopy.utils.output import Output
 from bbopy.utils.verbose import Table
+from bbopy.utils.verbose.display import Display
 
 
 class Experiment:
@@ -64,6 +65,7 @@ class Experiment:
 
         self.output = Output()
         self.algorithm.setup(problem)
+        self.display = Display(title=self.algorithm.name)
 
     def optimize(self, verbose: bool = False) -> pd.DataFrame:
         r"""Run the optimization loop to solve the problem with the selected algorithm.
@@ -78,9 +80,7 @@ class Experiment:
             A pandas Dataframe with the optimization results, orginized according to the Output object.
         """
         if verbose:
-            self.display = self._init_display()
-            print(self.display["title"])
-            print(self.display["header"])
+            self.display.print_header()
 
         for i in range(self.termination + 1):
             start_time = time.perf_counter()
@@ -92,25 +92,10 @@ class Experiment:
             tell_exec_time = time.perf_counter() - (start_time + ask_exec_time + eval_exec_time)
             if verbose:
                 self._update_display(i, sum([ask_exec_time, eval_exec_time, tell_exec_time]))
-                print(self.display[-1])
+                self.display.println()
             self.output.append(index=i, x=x.tolist(), y=y.tolist(),
                                ask_times=ask_exec_time, eval_times=eval_exec_time, tell_times=tell_exec_time)
         return self.output.to_pandas()
-
-    def _init_display(self) -> Table:
-        r"""Initializes the information to be logged during the optimization process.
-
-        Returns:
-            A Table with the header initialized.
-        """
-        width = [8, 10, 15, 15, 8]
-        if isinstance(self.algorithm, BoTorchAlgorithm):
-            column_names = ["Iter.", "N. Eval.", "Best Seen", "Time"]
-        elif isinstance(self.algorithm, PymooAlgorithm):
-            column_names = ["Gen.", "N. Eval.", "Best Seen", "Time"]
-        else:
-            column_names = ["#", "N. Eval.", "Best Seen", "Time"]
-        return Table(column_names, width, title=self.algorithm.name)
 
     def _update_display(self, index: int, exec_time: float) -> None:
         r"""Update the information to be logged.
@@ -124,4 +109,4 @@ class Experiment:
         """
         n_eval = self.algorithm.n_eval
         best_seen = self.algorithm.best_seen(self.problem.maximize)
-        self.display.append([index, n_eval, best_seen, exec_time])
+        self.display.update([index, n_eval, best_seen, exec_time])
